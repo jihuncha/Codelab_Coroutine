@@ -20,13 +20,19 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.android.kotlincoroutines.fakes.MainNetworkFake
 import com.example.android.kotlincoroutines.fakes.TitleDaoFake
 import com.example.android.kotlincoroutines.main.utils.MainCoroutineScopeRule
+import com.example.android.kotlincoroutines.main.utils.getValueForTest
+import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class MainViewModelTest {
+    //MainCoroutineScopeRule is a custom rule in this codebase that configures Dispatchers.
+    //Main to use a TestCoroutineDispatcher from kotlinx-coroutines-test.
+    //This allows tests to advance a virtual-clock for testing, and allows code to use Dispatchers.Main in unit tests.
     @get:Rule
     val coroutineScope = MainCoroutineScopeRule()
+    //InstantTaskExecutorRule is a JUnit rule that configures LiveData to execute each task synchronously
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
@@ -44,5 +50,14 @@ class MainViewModelTest {
     @Test
     fun whenMainClicked_updatesTaps() {
         // TODO: Write this
+//        By calling onMainViewClicked, the coroutine we just created will be launched.
+//        This test checks that the taps text stays "0 taps" right after onMainViewClicked is called,
+//        then 1 second later it gets updated to "1 taps".
+        //우클릭 이후 MainViewModelTest를 하면 테스트 통과여부 확인 가능하다.
+        subject.onMainViewClicked()
+        //여기 taps값이 0이 아닌경우 에러떨어짐!
+        Truth.assertThat(subject.taps.getValueForTest()).isEqualTo("0 taps")
+        coroutineScope.advanceTimeBy(1000)
+        Truth.assertThat(subject.taps.getValueForTest()).isEqualTo("1 taps")
     }
 }
